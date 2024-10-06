@@ -1,26 +1,106 @@
-import React from "react";
-
-//include images into your bundle
-import rigoImage from "../../img/rigo-baby.jpg";
-
-//create your first component
+import React, { useState, useEffect } from "react";
 const Home = () => {
-	return (
-		<div className="text-center">
-			<h1 className="text-center mt-5">Hello Rigo!</h1>
-			<p>
-				<img src={rigoImage} />
-			</p>
-			<a href="#" className="btn btn-success">
-				If you see this green button... bootstrap is working...
-			</a>
-			<p>
-				Made by{" "}
-				<a href="http://www.4geeksacademy.com">4Geeks Academy</a>, with
-				love!
-			</p>
-		</div>
-	);
+  const [newTodo, setNewTodo] = useState("");
+  const [todos, setTodos] = useState([]);
+  const [user, setUser] = useState("Mona");
+  const [isLoading, setIsLoading] = useState(false);
+  // API URL
+  const API_BASE_URL = `https://playground.4geeks.com/todo`;
+  useEffect(() => {
+    initializeUser();
+  }, []);
+    const initializeUser = async () => {
+    const response = await fetch(`${API_BASE_URL}/users/${user}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    if (response.ok) {
+      const data = await response.json();
+      setTodos(data.todos);
+    } else {
+      const response = await fetch(`${API_BASE_URL}/users/${user}`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+    }
+    setIsLoading(false);
+  };
+  const handleClick = async () => {
+    const url = `https://playground.4geeks.com/todo/todos/${user}`;
+    const response = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        label: newTodo,
+        is_done: false,
+      }),
+    });
+    const data = await response.json();
+    setTodos([data, ...todos]);
+    setNewTodo("");
+  };
+  const handleChange = (event) => {
+    setNewTodo(event.target.value);
+  };
+  const deleteTask = async (id) => {
+    const url = `https://playground.4geeks.com/todo/todos/${id}`;
+    const response = await fetch(url, {
+      method: "DELETE",
+    });
+    console.log(id);
+    const newList = todos.filter((todo) => todo.id !== id);
+    setTodos(newList);
+  };
+  return (
+    <div className="container text-center">
+      <div>
+        <h1 className="text-center mt-5">ToDo List Of the Day</h1>
+      </div>
+      <div className="d-flex justify-content-center align-items-center gap-2 mb-3">
+        <input
+          className="form-control-lg col-10"
+          type="text"
+          value={newTodo}
+          onChange={handleChange}
+          placeholder="New Task"
+        />
+        <button className="btn btn-lg btn-primary col-2" onClick={handleClick}>
+          Add to the list
+        </button>
+      </div>
+      <h3>New task: {newTodo}</h3>
+      <ul className="list-group">
+        {todos.map((todo, index) => (
+          <li className="list-group-item d-flex justify-content-between align-items-center">
+            {todo.label}
+            <button
+              className="m-3 btn btn-danger"
+              onClick={() => deleteTask(todo.id)}
+            >
+              Delete
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
 };
-
 export default Home;
+
+
+
+
+
+
+
+
+
+
+
+
